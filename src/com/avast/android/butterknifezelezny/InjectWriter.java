@@ -18,6 +18,7 @@ import java.util.ArrayList;
 public class InjectWriter extends WriteCommandAction.Simple {
 
     protected PsiFile mFile;
+    protected boolean mIsRecyclerView;
     protected Project mProject;
     protected PsiClass mClass;
     protected ArrayList<Element> mElements;
@@ -27,10 +28,11 @@ public class InjectWriter extends WriteCommandAction.Simple {
     protected boolean mCreateHolder;
     protected boolean mSplitOnclickMethods;
 
-    public InjectWriter(PsiFile file, PsiClass clazz, String command, ArrayList<Element> elements, String layoutFileName, String fieldNamePrefix, boolean createHolder, boolean splitOnclickMethods) {
+    public InjectWriter(PsiFile file, PsiClass clazz, String command, ArrayList<Element> elements, String layoutFileName, String fieldNamePrefix, boolean createHolder, boolean isRecyclerView, boolean splitOnclickMethods) {
         super(clazz.getProject(), command);
 
         mFile = file;
+        mIsRecyclerView = isRecyclerView;
         mProject = clazz.getProject();
         mClass = clazz;
         mElements = elements;
@@ -49,7 +51,7 @@ public class InjectWriter extends WriteCommandAction.Simple {
         }
 
         if (mCreateHolder) {
-            generateAdapter(butterKnife);
+            generateAdapter(butterKnife, mIsRecyclerView);
         } else {
             if (Utils.getInjectCount(mElements) > 0) {
                 generateFields(butterKnife);
@@ -130,17 +132,24 @@ public class InjectWriter extends WriteCommandAction.Simple {
     /**
      * Create ViewHolder for adapters with injections
      */
-    protected void generateAdapter(@NotNull IButterKnife butterKnife) {
+    protected void generateAdapter(@NotNull IButterKnife butterKnife, boolean isRecyclerView) {
         // view holder class
         StringBuilder holderBuilder = new StringBuilder();
         holderBuilder.append(Utils.getViewHolderClassName());
         holderBuilder.append("(android.view.View view) {");
+        if (isRecyclerView) {
+            holderBuilder.append("super(view);");
+        }
         holderBuilder.append(butterKnife.getCanonicalBindStatement());
         holderBuilder.append("(this, view);");
         holderBuilder.append("}");
 
         PsiClass viewHolder = mFactory.createClassFromText(holderBuilder.toString(), mClass);
         viewHolder.setName(Utils.getViewHolderClassName());
+        if (isRecyclerView) {
+            viewHolder.getExtendsList().add(mClass.findInnerClassByName("android.support.v7.widget.RecyclerView.ViewHolder", true)); // does not work
+//            extendsList.add(mFactory.createReferenceElementByType(new PsiImmediateClassType()"android.support.v7.widget.RecyclerView.ViewHolder"));
+        }
 
         // add injections into view holder
         for (Element element : mElements) {

@@ -25,5 +25,10 @@ public class Definitions {
         adapters.add("android.support.v4.widget.CursorAdapter");
         adapters.add("android.support.v4.widget.SimpleCursorAdapter");
         adapters.add("android.support.v4.widget.ResourceCursorAdapter");
+        adapters.add("android.support.v7.widget.RecyclerView.Adapter");
+    }
+
+    public static boolean isRecyclerView(final String viewReference) {
+        return "android.support.v7.widget.RecyclerView.Adapter".equals(viewReference);
     }
 }

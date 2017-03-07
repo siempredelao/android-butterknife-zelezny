@@ -78,7 +78,7 @@ public class InjectAction extends BaseGenerateAction implements IConfirmListener
         }
     }
 
-    public void onConfirm(Project project, Editor editor, ArrayList<Element> elements, String fieldNamePrefix, boolean createHolder, boolean splitOnclickMethods) {
+    public void onConfirm(Project project, Editor editor, ArrayList<Element> elements, String fieldNamePrefix, boolean createHolder, boolean isRecyclerView, boolean splitOnclickMethods) {
         PsiFile file = PsiUtilBase.getPsiFileInEditor(editor, project);
         if (file == null) {
             return;
@@ -89,7 +89,7 @@ public class InjectAction extends BaseGenerateAction implements IConfirmListener
 
 
         if (Utils.getInjectCount(elements) > 0 || Utils.getClickCount(elements) > 0) { // generate injections
-            new InjectWriter(file, getTargetClass(editor, file), "Generate Injections", elements, layout.getName(), fieldNamePrefix, createHolder, splitOnclickMethods).execute();
+            new InjectWriter(file, getTargetClass(editor, file), "Generate Injections", elements, layout.getName(), fieldNamePrefix, createHolder, isRecyclerView, splitOnclickMethods).execute();
         } else { // just notify user about no element selected
             Utils.showInfoNotification(project, "No injection was selected");
         }
@@ -114,11 +114,15 @@ public class InjectAction extends BaseGenerateAction implements IConfirmListener
 
         // get parent classes and check if it's an adapter
         boolean createHolder = false;
+        boolean recyclerView = false;
         PsiReferenceList list = clazz.getExtendsList();
         if (list != null) {
             for (PsiJavaCodeReferenceElement element : list.getReferenceElements()) {
                 if (Definitions.adapters.contains(element.getQualifiedName())) {
                     createHolder = true;
+                    if (Definitions.isRecyclerView(element.getQualifiedName())) {
+                        recyclerView = true;
+                    }
                 }
             }
         }
@@ -140,7 +144,7 @@ public class InjectAction extends BaseGenerateAction implements IConfirmListener
             }
         }
 
-        EntryList panel = new EntryList(project, editor, elements, ids, createHolder, this, this);
+        EntryList panel = new EntryList(project, editor, elements, ids, createHolder, recyclerView, this, this);
 
         mDialog = new JFrame();
         mDialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);

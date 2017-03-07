@@ -23,6 +23,7 @@ public class EntryList extends JPanel {
     protected ArrayList<String> mGeneratedIDs = new ArrayList<String>();
     protected ArrayList<Entry> mEntries = new ArrayList<Entry>();
     protected boolean mCreateHolder = false;
+    protected boolean mRecyclerView = false;
     protected String mPrefix = null;
     protected IConfirmListener mConfirmListener;
     protected ICancelListener mCancelListener;
@@ -61,10 +62,11 @@ public class EntryList extends JPanel {
         }
     };
 
-    public EntryList(Project project, Editor editor, ArrayList<Element> elements, ArrayList<String> ids, boolean createHolder, IConfirmListener confirmListener, ICancelListener cancelListener) {
+    public EntryList(Project project, Editor editor, ArrayList<Element> elements, ArrayList<String> ids, boolean createHolder, boolean recyclerView, IConfirmListener confirmListener, ICancelListener cancelListener) {
         mProject = project;
         mEditor = editor;
         mCreateHolder = createHolder;
+        mRecyclerView = recyclerView;
         mConfirmListener = confirmListener;
         mCancelListener = cancelListener;
         if (elements != null) {
@@ -256,7 +258,7 @@ public class EntryList extends JPanel {
 
             if (valid) {
                 if (mConfirmListener != null) {
-                    mConfirmListener.onConfirm(mProject, mEditor, mElements, mPrefix, mCreateHolder, msplitOnclickMethodsCheck.isSelected());
+                    mConfirmListener.onConfirm(mProject, mEditor, mElements, mPrefix, mCreateHolder, mRecyclerView, msplitOnclickMethodsCheck.isSelected());
                 }
             }
         }
